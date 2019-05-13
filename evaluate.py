@@ -58,7 +58,7 @@ def main():
     testloader = DataLoader(testset, batch_size=args.batch, shuffle=True, num_workers=4)
 
     accuracy = evaluate(net, args.device, testloader)
-    print(f'Model accuracy: {accuracy}')
+    print('Model accuracy: {}'.format(accuracy))
 
 
 if __name__ == '__main__':

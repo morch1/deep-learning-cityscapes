@@ -27,9 +27,9 @@ def preprocess_data(dst_dir, src_dir, training_ratio):
                 img_label_px[x, y] = CityscapesDataset.class_to_idx[img_label_rgb_px[x, y]]
         if i >= len(filenames) * training_ratio and subdir == 'Training':
             subdir = 'Test'
-        img_data.save(os.path.join(dst_dir, subdir, f'{i:04}D.png'))
-        img_label.save(os.path.join(dst_dir, subdir, f'{i:04}L.png'))
-        print(f'{i / len(filenames) * 100:.2f}%', end='\r', flush=True)
+        img_data.save(os.path.join(dst_dir, subdir, '{:04d}D.png'.format(i)))
+        img_label.save(os.path.join(dst_dir, subdir, '{:04d}L.png'.format(i)))
+        print('{:.2f}%'.format(i / len(filenames) * 100), end='\r', flush=True)
     print('done!  ')
 
 

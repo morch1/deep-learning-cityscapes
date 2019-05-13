@@ -39,7 +39,7 @@ def train(net, device, trainset, testset, batch_size, lr, max_epochs, early_stop
 
     patience = early_stop
 
-    logger.info(f'device {device}, batch size {batch_size}, lr {lr}, max epochs {max_epochs}, early stop {early_stop}')
+    logger.info('device {}, batch size {}, lr {}, max epochs {}, early stop {}'.format(device, batch_size, lr, max_epochs, early_stop))
     logger.info('started training')
 
     for epoch in range(max_epochs):
@@ -73,7 +73,7 @@ def train(net, device, trainset, testset, batch_size, lr, max_epochs, early_stop
         if patience == 0:
             break
 
-    logger.info(f'finished training, best result (saved to {checkpoint_filename}):')
+    logger.info('finished training, best result (saved to {}):'.format(checkpoint_filename))
     log_status(*best)
 
     net.load_state_dict(torch.load(checkpoint_filename))
