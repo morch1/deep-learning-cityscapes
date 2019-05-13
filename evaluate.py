@@ -52,7 +52,7 @@ def main():
     args = parser.parse_args()
 
     net = CityscapesNet(3, len(CityscapesDataset.classes))
-    net.load_state_dict(torch.load(args.model))
+    net.load_state_dict(torch.load(args.model, map_location=args.device))
 
     testset = CityscapesDataset(args.data, random_flips=False)
     testloader = DataLoader(testset, batch_size=args.batch, shuffle=True, num_workers=4)

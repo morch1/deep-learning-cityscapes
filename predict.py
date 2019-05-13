@@ -35,7 +35,7 @@ def main():
         filename = args.image
 
     net = CityscapesNet(3, len(dataset.CityscapesDataset.classes))
-    net.load_state_dict(torch.load(args.model))
+    net.load_state_dict(torch.load(args.model, map_location=args.device))
 
     image = Image.open(filename).convert('RGB')
     w, h = image.size
