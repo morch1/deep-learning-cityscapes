@@ -1,5 +1,4 @@
 import math
-import time
 import torch
 import argparse
 import os
@@ -11,7 +10,7 @@ from evaluate import evaluate
 from dataset import CityscapesDataset
 
 
-def train(net, device, trainloader, testloader, lr, max_epochs, early_stop, checkpoint_filename):
+def train(net, device, trainset, testset, batch_size, lr, max_epochs, early_stop, checkpoint_filename):
     logger = logging.getLogger('training')
     logger.setLevel(logging.INFO)
     log_format = logging.Formatter('%(asctime)s - %(message)s')
@@ -27,17 +26,20 @@ def train(net, device, trainloader, testloader, lr, max_epochs, early_stop, chec
 
     net.to(device)
 
+    trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=4)
+    testloader = DataLoader(testset, batch_size=batch_size, shuffle=True, num_workers=4)
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr)
 
     n_train_batches = len(trainloader)
     n_classes = len(CityscapesDataset.classes)
 
-    # (epoch, train_loss, test_loss, accuracy)
     best = (0, math.inf, math.inf, 0.0)
 
-    stop_in = early_stop
+    patience = early_stop
 
+    logger.info(f'device {device}, batch size {batch_size}, lr {lr}, max epochs {max_epochs}, early stop {early_stop}')
     logger.info('started training')
 
     for epoch in range(max_epochs):
@@ -60,18 +62,18 @@ def train(net, device, trainloader, testloader, lr, max_epochs, early_stop, chec
 
         status = (epoch, train_loss, test_loss, accuracy)
         if test_loss < best[2]:
-            stop_in = early_stop
+            patience = early_stop
             best = status
             torch.save(net.state_dict(), checkpoint_filename)
         else:
-            stop_in -= 1
+            patience -= 1
 
         log_status(*status)
 
-        if stop_in == 0:
+        if patience == 0:
             break
 
-    logger.info('finished training, best result:')
+    logger.info(f'finished training, best result (saved to {checkpoint_filename}):')
     log_status(*best)
 
     net.load_state_dict(torch.load(checkpoint_filename))
@@ -80,9 +82,9 @@ def train(net, device, trainloader, testloader, lr, max_epochs, early_stop, chec
 def main():
     parser = argparse.ArgumentParser(description='Train cityscapes model',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--traindata', default=os.path.join('data', 'cityscapes', 'Training'),
+    parser.add_argument('--traindata', default=os.path.join('data', 'Training'),
                         help='directory containing training dataset')
-    parser.add_argument('--testdata', default=os.path.join('data', 'cityscapes', 'Test'),
+    parser.add_argument('--testdata', default=os.path.join('data', 'Test'),
                         help='directory containing validation dataset')
     parser.add_argument('--checkpoint', default='cityscapes.pt', help='checkpoint filename')
     parser.add_argument('--device', default='cpu', help='device to use')
@@ -95,12 +97,9 @@ def main():
     net = CityscapesNet(3, len(CityscapesDataset.classes))
 
     trainset = CityscapesDataset(args.traindata, random_flips=True)
-    trainloader = DataLoader(trainset, batch_size=args.batch, shuffle=True, num_workers=4)
-
     testset = CityscapesDataset(args.testdata, random_flips=False)
-    testloader = DataLoader(testset, batch_size=args.batch, shuffle=True, num_workers=4)
 
-    train(net, args.device, trainloader, testloader, args.lr, args.epochs, args.earlystop, args.checkpoint)
+    train(net, args.device, trainset, testset, args.batch, args.lr, args.epochs, args.earlystop, args.checkpoint)
 
 
 if __name__ == '__main__':

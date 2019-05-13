@@ -2,7 +2,6 @@ import argparse
 import os
 import glob
 import random
-import numpy as np
 from dataset import CityscapesDataset
 from PIL import Image
 
@@ -15,24 +14,30 @@ def preprocess_data(dst_dir, src_dir, training_ratio):
     random.shuffle(filenames)
     subdir = 'Training'
     for i, filename in enumerate(filenames):
-        img = np.array(Image.open(filename).convert('RGB'))
+        img = Image.open(filename).convert('RGB')
         w, h = img.size
-        w /= 2
-        img_data = img[:, :w, :]
-        img_label_rgb = img[:, w:(w * 2), :]
-        img_label = np.array([[CityscapesDataset.class_to_idx[tuple(img_label_rgb[y, x])] for x in range(w)] for y in range(h)])
+        w //= 2
+        img_data = img.crop((0, 0, w, h))
+        img_label_rgb = img.crop((w, 0, 2 * w, h))
+        img_label_rgb_px = img_label_rgb.load()
+        img_label = Image.new('L', (w, h))
+        img_label_px = img_label.load()
+        for x in range(w):
+            for y in range(h):
+                img_label_px[x, y] = CityscapesDataset.class_to_idx[img_label_rgb_px[x, y]]
         if i >= len(filenames) * training_ratio and subdir == 'Training':
             subdir = 'Test'
-        Image.fromarray(img_data.astype(np.uint8)).save(os.path.join(dst_dir, subdir, f'{i:04}D.png'))
-        Image.fromarray(img_label.astype(np.uint8)).save(os.path.join(dst_dir, subdir, f'{i:04}L.png'))
-        print(f'[{i:04} / {len(filenames)}] {filename} -> {subdir}')
+        img_data.save(os.path.join(dst_dir, subdir, f'{i:04}D.png'))
+        img_label.save(os.path.join(dst_dir, subdir, f'{i:04}L.png'))
+        print(f'{i / len(filenames) * 100:.2f}%', end='\r', flush=True)
+    print('done!  ')
 
 
 def main():
     parser = argparse.ArgumentParser(description='Prepare cityscapes dataset',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--source', help='directory containing original dataset')
-    parser.add_argument('--destination', default=os.path.join('data', 'cityscapes'), help='directory for processed images')
+    parser.add_argument('--source', help='directory containing original dataset', required=True)
+    parser.add_argument('--destination', default='data', help='directory for processed images')
     parser.add_argument('--ratio', default=0.7, help='ratio for splitting to training and validation sets')
     args = parser.parse_args()
     preprocess_data(args.destination, args.source, args.ratio)

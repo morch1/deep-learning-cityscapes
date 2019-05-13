@@ -45,8 +45,8 @@ def evaluate(net, device, testloader, criterion=None):
 def main():
     parser = argparse.ArgumentParser(description='Evaluate accuracy of trained model',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--model', default='cityscapes.pt', help='model checkpoint to use')
-    parser.add_argument('--data', default=os.path.join('data', 'cityscapes', 'Test'), help='data directory')
+    parser.add_argument('--model', default='cityscapes.pt', help='model to use')
+    parser.add_argument('--data', default=os.path.join('data', 'Test'), help='data directory')
     parser.add_argument('--device', default='cpu', help='device to use')
     parser.add_argument('--batch', default=8, help='batch size')
     args = parser.parse_args()
@@ -54,7 +54,7 @@ def main():
     net = CityscapesNet(3, len(CityscapesDataset.classes))
     net.load_state_dict(torch.load(args.model))
 
-    testset = CityscapesDataset(os.path.join(args.data), random_flips=False)
+    testset = CityscapesDataset(args.data, random_flips=False)
     testloader = DataLoader(testset, batch_size=args.batch, shuffle=True, num_workers=4)
 
     accuracy = evaluate(net, args.device, testloader)

@@ -36,11 +36,9 @@ class CityscapesDataset(data.Dataset):
         data_img = Image.open(self.data_filenames[i]).convert('RGB')
         label_img = Image.open(self.label_filenames[i]).convert('L')
         hflip = self.random_flips and bool(random.randint(0, 1))
-
         data_img_t = self.data_transform(data_img)
         label_img_t = torch.from_numpy(np.array(label_img)).long()
         if hflip:
             data_img_t = data_img_t.flip(-1)
             label_img_t = label_img_t.flip(-1)
-
         return data_img_t, label_img_t

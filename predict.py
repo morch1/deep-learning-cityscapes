@@ -9,12 +9,6 @@ from net import CityscapesNet
 
 
 def predict(net, device, images):
-    """
-    :param net: Trained network.
-    :param device: Device to use.
-    :param images: Batch of images (N x 3 x H x W tensor).
-    :return: Class prediciton for each pixel (N x H x W tensor)
-    """
     net.to(device)
     net.eval()
     images = images.to(device)
@@ -27,7 +21,7 @@ def predict(net, device, images):
 def main():
     parser = argparse.ArgumentParser(description='Perform semantic segmentation on image',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--image', default=os.path.join('data', 'cityscapes', 'Test'),
+    parser.add_argument('--image', default=os.path.join('data', 'Test'),
                         help='image to process, or directory to pick random image from')
     parser.add_argument('--model', default='cityscapes.pt', help='model checkpoint to use')
     parser.add_argument('--device', default='cpu', help='device to use')
