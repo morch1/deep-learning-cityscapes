@@ -1,0 +1,7 @@
+2nd assignment for deep learning class
+
+Executables (run with -h parameter for more info):
+    preprocess.py   - prepares the dataset
+    train.py        - trains a model
+    evaluate.py     - evaluates model accuracy
+    predict.py      - performs segmentation on specified image
